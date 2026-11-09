@@ -1,9 +1,10 @@
-name: Publish to PyPI
+name: Publish Python distributions
 
 on:
   push:
     tags:
       - 'v*'
+      - 'test-v*'
 
 permissions:
   contents: read
@@ -29,7 +30,27 @@ jobs:
           path: dist/
           if-no-files-found: error
 
-  publish:
+  publish-testpypi:
+    if: startsWith(github.ref_name, 'test-v')
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/wordpress-to-markdown
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-distributions
+          path: dist/
+      - name: Publish to TestPyPI with Trusted Publishing
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  publish-pypi:
+    if: startsWith(github.ref_name, 'v')
     needs: build
     runs-on: ubuntu-latest
     environment:
