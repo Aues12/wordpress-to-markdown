@@ -7,6 +7,7 @@ from cli.main import parse_args
 
 
 def test_paths_are_relative_to_config_file(tmp_path, monkeypatch):
+    # Resolve relative paths from the config file directory.
     project = tmp_path / "blog"
     project.mkdir()
     config_file = project / "custom.json"
@@ -22,6 +23,7 @@ def test_paths_are_relative_to_config_file(tmp_path, monkeypatch):
 
 
 def test_absolute_paths_are_preserved(tmp_path):
+    # Keep absolute paths unchanged.
     absolute = tmp_path / "archive.json"
     config_file = tmp_path / "config.json"
     config_file.write_text(json.dumps({"paths": {"json_file": str(absolute)}}), encoding="utf-8")
@@ -29,6 +31,7 @@ def test_absolute_paths_are_preserved(tmp_path):
 
 
 def test_frontmatter_fields_are_selected_per_invocation(tmp_path):
+    # Use the frontmatter fields supplied for this load.
     data_file = tmp_path / "posts.json"
     data_file.write_text(json.dumps({"posts": [{
         "title": "Example", "slug": "example", "date": "2026-01-01"
@@ -38,5 +41,6 @@ def test_frontmatter_fields_are_selected_per_invocation(tmp_path):
 
 
 def test_cli_accepts_custom_config():
+    # Accept a custom config path and retain the default.
     assert parse_args(["--config", "another.json"]).config == "another.json"
     assert parse_args([]).config == "config.json"
