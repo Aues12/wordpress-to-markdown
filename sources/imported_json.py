@@ -5,22 +5,19 @@ from pathlib import Path
 
 from core.models import Post
 
-from config.loader import load_config
-
-config = load_config()
-
 
 DEFAULT_INPUT_FILE = "data/imported.json"
+DEFAULT_FRONTMATTER_FIELDS = ("title", "date", "modified", "slug", "category_names")
 
 
 def load_imported_json(
     input_file: str | Path = DEFAULT_INPUT_FILE,
     verbose: bool = False,
-    ) -> list[Post]:
-    """
-    Load imported WordPress JSON and convert it into Post objects.
-    """
+    frontmatter_fields: list[str] | tuple[str, ...] | None = None,
+) -> list[Post]:
+    """Load imported WordPress JSON and convert it into Post objects."""
     input_path = Path(input_file)
+    fields = DEFAULT_FRONTMATTER_FIELDS if frontmatter_fields is None else frontmatter_fields
 
     if verbose:
         print(f"Loading imported JSON: {input_path}")
@@ -45,9 +42,8 @@ def load_imported_json(
         raise ValueError("'posts' field must be a list.")
 
     posts: list[Post] = []
-
     for item in raw_posts:
-        post = Post(
+        posts.append(Post(
             title=item.get("title", "") or "",
             content=item.get("content", "") or "",
             excerpt=item.get("excerpt", "") or "",
@@ -61,10 +57,8 @@ def load_imported_json(
                 "categories": item.get("categories", []) or [],
                 "category_names": item.get("category_names", []) or [],
             },
-            frontmatter={field: item.get(field) for field in config["frontmatter"]["fields"]},
+            frontmatter={field: item.get(field) for field in fields},
             source_path=str(input_path),
             source_type="json",
-        )
-        posts.append(post)
-
+        ))
     return posts
