@@ -7,7 +7,8 @@ from cli.main import parse_args
 
 
 def test_paths_are_relative_to_config_file(tmp_path, monkeypatch):
-    # Resolve relative paths from the config file directory.
+    # Run from a different directory to verify paths resolve relative to the config file.
+    # tmp_path creates isolated test directories; monkeypatch restores the working directory afterward.
     project = tmp_path / "blog"
     project.mkdir()
     config_file = project / "custom.json"
