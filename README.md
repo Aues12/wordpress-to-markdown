@@ -1,6 +1,6 @@
-# WordPress to Obsidian
+# WordPress to Markdown
 
-A modular Python library for converting WordPress content into structured, Obsidian-ready markdown files.
+A modular Python library for converting WordPress content into structured, Markdown (including Obsidian-compatible notes) files.
 
 ---
 
@@ -30,26 +30,20 @@ WordPress API → JSON → Process → Assemble → Write
 
 ## Project Structure
 
-```
-Wordpress-to-Obsidian/
-├─ cli/
-│  └─ main.py
-├─ config/
-│  └─ loader.py
-├─ core/
-│  └─ models.py
-├─ data/
-│  └─ imported.json
-├─ importer/
-│  └─ wordpress_api.py
-├─ processors/
-│  ├─ metadata.py
-│  └─ pipeline.py
-├─ sources/
-│  └─ imported_json.py
-├─ assembler.py
-├─ config.json
-└─ writer.py
+```text
+wordpress-to-markdown/
+├── src/wordpress_to_markdown/
+│   ├── cli.py
+│   ├── config/
+│   ├── core/
+│   ├── importer/
+│   ├── processors/
+│   ├── sources/
+│   ├── assembler.py
+│   └── writer.py
+├── tests/
+├── config.json
+└── pyproject.toml
 ```
 
 ---
@@ -58,11 +52,23 @@ Wordpress-to-Obsidian/
 
 Requires Python 3.9 or newer.
 
+### Install from PyPI (after the first release)
+
+```bash
+pip install wordpress-to-markdown
+```
+
+### Install from GitHub (available now)
+
+```bash
+pip install git+https://github.com/Aues12/wordpress-to-markdown.git
+```
+
 ### Clone the repository
 
 ```bash
-git clone https://github.com/Aues12/WordPress-to-Obsidian.git
-cd WordPress-to-Obsidian
+git clone https://github.com/Aues12/wordpress-to-markdown.git
+cd wordpress-to-markdown
 ```
 
 ### Quickstart
@@ -74,10 +80,10 @@ python -m venv venv
 source venv/bin/activate
 ```
 
-### Install dependencies
+### Development installation
 
 ```bash
-pip install -r requirements.txt
+pip install -e '.[dev]'
 ```
 
 Dependencies:
@@ -97,7 +103,7 @@ For running tests:
 ### 1. Fetch data from WordPress
 
 ```python
-from importer.wordpress_api import export_posts_to_json
+from wordpress_to_markdown.importer.wordpress_api import export_posts_to_json
 
 export_posts_to_json(
     base_url="https://your-site.com",
@@ -106,12 +112,14 @@ export_posts_to_json(
 ```
 
 Use this manual fetch step when you want to generate or refresh `data/imported.json`
-outside the CLI workflow. In normal usage, `python -m cli.main` already checks for the
+outside the CLI workflow. In normal usage, `wordpress-to-markdown` already checks for the
 JSON file and fetches it automatically when needed, or when you pass `--refresh`.
 
 ---
 
 ### 2. Configure the CLI
+
+Use `--config /path/to/config.json` to select a configuration file. Relative `json_file` and `output_dir` paths are resolved from the configuration file's directory, not the shell's working directory.
 
 Create/edit the `config.json` file in the project root:
 
@@ -142,7 +150,7 @@ Create/edit the `config.json` file in the project root:
 ### 3. Run the pipeline
 
 ```bash
-python -m cli.main
+wordpress-to-markdown
 ```
 
 This will:
@@ -172,19 +180,30 @@ Examples:
 
 ```bash
 # Build the 10 newest posts as individual markdown files
-python -m cli.main --order newest --limit 10 --mode per_post
+wordpress-to-markdown --order newest --limit 10 --mode per_post
 
 # Build a single combined book in oldest-to-newest order
-python -m cli.main --order newest --limit 20 --write_order oldest --mode book
+wordpress-to-markdown --order newest --limit 20 --write_order oldest --mode book
 
 # Build individual files with WordPress excerpts below each title
-python -m cli.main --mode per_post --excerpt
+wordpress-to-markdown --mode per_post --excerpt
 
 # Preserve imported HTML in Markdown files
-python -m cli.main --content-format html --excerpt
+wordpress-to-markdown --content-format html --excerpt
 ```
 
 ---
+
+## Testing and packaging
+
+```bash
+pip install -e '.[dev]'
+python -m pytest
+python -m build
+python -m twine check dist/*
+```
+
+The distributable Python package lives in `src/wordpress_to_markdown/`. Legacy top-level modules remain temporarily for compatibility.
 
 ## Testing
 

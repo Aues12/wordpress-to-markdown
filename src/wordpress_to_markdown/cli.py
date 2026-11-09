@@ -1,0 +1,141 @@
+from __future__ import annotations
+from pathlib import Path
+
+from wordpress_to_markdown.config.loader import load_config
+from wordpress_to_markdown.importer.wordpress_api import ensure_json_export
+from wordpress_to_markdown.sources.imported_json import load_imported_json
+from wordpress_to_markdown.processors.pipeline import process_posts
+from wordpress_to_markdown.assembler import assemble
+from wordpress_to_markdown.writer import write
+
+import argparse
+
+
+def parse_args(argv: list[str] | None = None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", default="config.json", help="Path to configuration JSON file")
+
+    parser.add_argument(
+        "--order",
+        choices=["newest", "oldest"],
+        default="newest",
+        help="Order posts by date, when pulling from JSON"
+    )
+
+    parser.add_argument(
+        "--write_order",
+        choices=["newest", "oldest"],
+        default="oldest",
+        help="Order posts by date, when writing to document"
+    )
+
+    parser.add_argument(
+        "--limit",
+        type=int,
+        help="Limit number of posts"
+    )
+
+    parser.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Fetch fresh data from WordPress"
+    )
+
+    parser.add_argument(
+        "--mode",
+        choices=["per_post", "book"],
+        default="per_post",
+        help="Output mode"
+    )
+
+    parser.add_argument(
+        "--frontmatter",
+        action="store_true",
+        help="Include frontmatter"
+    )
+
+    parser.add_argument(
+        "--excerpt",
+        action="store_true",
+        default=False,
+        help="Include the WordPress excerpt before post content"
+    )
+
+
+    parser.add_argument(
+        "--content-format", choices=["markdown", "html"], default="markdown",
+        help="Format post and excerpt content (default: markdown)"
+    )
+
+    return parser.parse_args(argv)
+
+
+def order_and_limit_posts(posts, order: str = "newest", limit: int | None = None):
+    # sort posts by date order, for pulling
+    reverse = order == "newest"
+    posts = sorted(posts, key=lambda p: p.date or "", reverse=reverse)
+
+    # limit the number of posts
+    if limit is not None:
+        posts = posts[:limit]
+
+    return posts
+
+def write_order(posts, order: str = "oldest", limit: int | None = None):
+    # sort posts by date order for writing
+    reverse = order == "newest"
+    posts = sorted(posts, key=lambda p: p.date or "", reverse=reverse)
+
+    return posts
+
+
+def main() -> None:
+    args = parse_args()
+    config = load_config(args.config)
+    json_path = Path(config["paths"]["json_file"])
+    base_url = config["wordpress"]["base_url"]
+    output_dir = config["paths"].get("output_dir", str(json_path.parent.parent / "output"))
+
+    ensure_json_export(
+        base_url=base_url,
+        json_path=json_path,
+        refresh=args.refresh,
+    )
+
+    print("Starting build...")
+
+    posts = load_imported_json(input_file=json_path, verbose=True, frontmatter_fields=config["frontmatter"]["fields"])
+    posts = process_posts(posts, verbose=True)
+
+    posts = order_and_limit_posts(
+        posts,
+        order=args.order,
+        limit=args.limit
+    )
+
+    posts = write_order(posts, order=args.write_order)
+
+    units = assemble(posts, 
+                     mode=args.mode, 
+                     verbose=True, 
+                     include_frontmatter=args.frontmatter if args.frontmatter 
+                     else config["frontmatter"]["include_frontmatter"],
+                     include_excerpt=args.excerpt,
+                     content_format=args.content_format,
+                     )
+
+    print(f"[INFO] Writing {len(units)} markdown files...")
+    print(f"[INFO] Output mode: {args.mode}")
+    write(
+        units,
+        format="md",
+        output_dir=output_dir,
+        verbose=True,
+        mode=args.mode,
+    )
+
+    print("Build completed. ✅")
+
+
+if __name__ == "__main__":
+    main()
