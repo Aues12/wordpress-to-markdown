@@ -2,11 +2,21 @@ import json
 from pathlib import Path
 
 
-def load_config(config_path: str = "config.json") -> dict:
-    path = Path(config_path)
+def load_config(config_path: str | Path = "config.json") -> dict:
+    """Read configuration and resolve file paths relative to its location."""
+    path = Path(config_path).expanduser().resolve()
+    if not path.is_file():
+        raise FileNotFoundError(f"Configuration file not found at: {path}")
 
-    if not path.exists():
-        raise FileNotFoundError(f"Configuration file not found at: {config_path}")
+    with path.open("r", encoding="utf-8") as handle:
+        config = json.load(handle)
 
-    with path.open("r", encoding="utf-8") as f:
-        return json.load(f)
+    for key in ("json_file", "output_dir"):
+        value = config.get("paths", {}).get(key)
+        if value is not None:
+            candidate = Path(value).expanduser()
+            if not candidate.is_absolute():
+                candidate = path.parent / candidate
+            config["paths"][key] = str(candidate.resolve())
+
+    return config
