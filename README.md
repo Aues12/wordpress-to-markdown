@@ -83,8 +83,17 @@ source venv/bin/activate
 
 ### Development installation
 
+With pip:
+
 ```bash
-pip install -e '.[dev]'
+python -m pip install -e '.[dev]'
+```
+
+With uv (using `uv.lock`):
+
+```bash
+uv sync --locked --extra dev
+uv run wordpress-to-markdown --help
 ```
 
 Dependencies:
@@ -196,6 +205,8 @@ wordpress-to-markdown --content-format html --excerpt
 ---
 
 ## Testing and packaging
+
+GitHub Actions runs the test suite with pip and uv on Python 3.10–3.13, then builds and checks both distributions. It also tests the installed wheel outside the repository.
 
 ```bash
 pip install -e '.[dev]'
