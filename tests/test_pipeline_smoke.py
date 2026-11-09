@@ -3,13 +3,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from assembler import assemble
-from cli.main import parse_args
-from core.models import Post
-from importer.wordpress_api import normalize_post
-from processors.pipeline import process_posts
-from sources.imported_json import load_imported_json
-from writer import write
+from wordpress_to_markdown.assembler import assemble
+from wordpress_to_markdown.cli import parse_args
+from wordpress_to_markdown.core.models import Post
+from wordpress_to_markdown.importer.wordpress_api import normalize_post
+from wordpress_to_markdown.processors.pipeline import process_posts
+from wordpress_to_markdown.sources.imported_json import load_imported_json
+from wordpress_to_markdown.writer import write
 
 
 def test_excerpt_cli_flag_defaults_to_false() -> None:

@@ -5,18 +5,22 @@ from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 
-from assembler import assemble
-from cli.main import order_and_limit_posts, write_order
-from config.loader import load_config
-from core.models import DocumentUnit, Post
-from importer.wordpress_api import ensure_json_export
-from processors.pipeline import process_posts
-from sources.imported_json import load_imported_json
-from writer import write
+from wordpress_to_markdown.assembler import assemble
+from wordpress_to_markdown.cli import order_and_limit_posts, write_order
+from wordpress_to_markdown.config.loader import load_config
+from wordpress_to_markdown.core.models import DocumentUnit, Post
+from wordpress_to_markdown.importer.wordpress_api import ensure_json_export
+from wordpress_to_markdown.processors.pipeline import process_posts
+from wordpress_to_markdown.sources.imported_json import load_imported_json
+from wordpress_to_markdown.writer import write
 
 
 CONFIG_PATH = Path("config.json")
-config = load_config(str(CONFIG_PATH))
+config = load_config(str(CONFIG_PATH)) if CONFIG_PATH.is_file() else {
+    "paths": {"json_file": "data/imported.json", "output_dir": "output"},
+    "wordpress": {"base_url": ""},
+    "frontmatter": {"include_frontmatter": False},
+}
 JSON_PATH = Path(config["paths"]["json_file"])
 OUTPUT_DIR = config["paths"].get("output_dir", "output")
 BASE_URL = config["wordpress"]["base_url"]

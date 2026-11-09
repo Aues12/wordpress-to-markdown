@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from importer.wordpress_api import ensure_json_export
-from sources.imported_json import load_imported_json
+from wordpress_to_markdown.importer.wordpress_api import ensure_json_export
+from wordpress_to_markdown.sources.imported_json import load_imported_json
 
 
 def test_import_reports_missing_empty_and_invalid_json(tmp_path: Path) -> None:

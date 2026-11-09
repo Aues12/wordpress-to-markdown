@@ -1,9 +1,9 @@
 import json
 from pathlib import Path
 
-from config.loader import load_config
-from sources.imported_json import load_imported_json
-from cli.main import parse_args
+from wordpress_to_markdown.config.loader import load_config
+from wordpress_to_markdown.sources.imported_json import load_imported_json
+from wordpress_to_markdown.cli import parse_args
 
 
 def test_paths_are_relative_to_config_file(tmp_path, monkeypatch):

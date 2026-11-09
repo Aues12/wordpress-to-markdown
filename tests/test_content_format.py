@@ -2,11 +2,11 @@ from pathlib import Path
 
 import pytest
 
-from assembler import assemble
-from cli.commanding import CommandSession, build_usage_profile, command_assemble
-from cli.main import parse_args
-from core.models import Post
-from writer import write
+from wordpress_to_markdown.assembler import assemble
+from wordpress_to_markdown.commanding import CommandSession, build_usage_profile, command_assemble
+from wordpress_to_markdown.cli import parse_args
+from wordpress_to_markdown.core.models import Post
+from wordpress_to_markdown.writer import write
 
 
 def test_cli_content_format_choices():

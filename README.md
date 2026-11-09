@@ -34,6 +34,7 @@ WordPress API → JSON → Process → Assemble → Write
 wordpress-to-markdown/
 ├── src/wordpress_to_markdown/
 │   ├── cli.py
+│   ├── commanding.py
 │   ├── config/
 │   ├── core/
 │   ├── importer/
@@ -50,7 +51,7 @@ wordpress-to-markdown/
 
 ## Installation
 
-Requires Python 3.9 or newer.
+Requires Python 3.10 or newer.
 
 ### Install from PyPI (after the first release)
 
@@ -203,7 +204,7 @@ python -m build
 python -m twine check dist/*
 ```
 
-The distributable Python package lives in `src/wordpress_to_markdown/`. Legacy top-level modules remain temporarily for compatibility.
+The implementation lives in `src/wordpress_to_markdown/`; import modules through `wordpress_to_markdown`. For example, `from wordpress_to_markdown.config.loader import load_config`. Use `wordpress-to-markdown --config /absolute/path/to/config.json` from any working directory; paths inside the config are relative to that file.
 
 ## Testing
 

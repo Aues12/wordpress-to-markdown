@@ -32,3 +32,25 @@ def test_package_assembly():
     units = assemble([Post(title="Hello", slug="hello", content="<p>World</p>")])
     assert units[0].filename == "hello.md"
     assert "World" in units[0].content
+
+
+def test_cli_runs_with_external_config_from_another_directory(tmp_path, monkeypatch):
+    import json
+    import sys
+    from wordpress_to_markdown.cli import main
+
+    project = tmp_path / "blog"
+    project.mkdir()
+    (project / "posts.json").write_text(json.dumps({"posts": [
+        {"title": "Example", "slug": "example", "content": "<p>Hello</p>"}
+    ]}), encoding="utf-8")
+    config = project / "config.json"
+    config.write_text(json.dumps({
+        "wordpress": {"base_url": "https://your-site.com"},
+        "paths": {"json_file": "posts.json", "output_dir": "notes"},
+        "frontmatter": {"fields": ["title"], "include_frontmatter": False},
+    }), encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(sys, "argv", ["wordpress-to-markdown", "--config", str(config)])
+    main()
+    assert "Hello" in (project / "notes" / "example.md").read_text(encoding="utf-8")
