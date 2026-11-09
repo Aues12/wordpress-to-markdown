@@ -10,13 +10,10 @@ from writer import write
 
 import argparse
 
-config = load_config()
-JSON_PATH = Path(config["paths"]["json_file"])
-BASE_URL = config["wordpress"]["base_url"]
-OUTPUT_DIR = config["paths"].get("output_dir", "output")
 
 def parse_args(argv: list[str] | None = None):
     parser = argparse.ArgumentParser()
+    parser.add_argument("--config", default="config.json", help="Path to configuration JSON file")
 
     parser.add_argument(
         "--order",
@@ -94,16 +91,20 @@ def write_order(posts, order: str = "oldest", limit: int | None = None):
 
 def main() -> None:
     args = parse_args()
+    config = load_config(args.config)
+    json_path = Path(config["paths"]["json_file"])
+    base_url = config["wordpress"]["base_url"]
+    output_dir = config["paths"].get("output_dir", str(json_path.parent.parent / "output"))
 
     ensure_json_export(
-        base_url=BASE_URL,
-        json_path=JSON_PATH,
+        base_url=base_url,
+        json_path=json_path,
         refresh=args.refresh,
     )
 
     print("Starting build...")
 
-    posts = load_imported_json(verbose=True)
+    posts = load_imported_json(input_file=json_path, verbose=True, frontmatter_fields=config["frontmatter"]["fields"])
     posts = process_posts(posts, verbose=True)
 
     posts = order_and_limit_posts(
@@ -128,7 +129,7 @@ def main() -> None:
     write(
         units,
         format="md",
-        output_dir=OUTPUT_DIR,
+        output_dir=output_dir,
         verbose=True,
         mode=args.mode,
     )
