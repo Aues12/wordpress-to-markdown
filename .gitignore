@@ -31,3 +31,4 @@ output/
 .DS_Store
 .idea/
 .vscode/
+*.pyc
